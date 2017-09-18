@@ -7,6 +7,7 @@
 <% else %>
   <% headers["Participant name"] = "18%" %>
 <% end %>                              
+<% headers["Github metrics"] = "30%" %>
 <% headers["Submitted item(s)"] = nil %>
 <table class="table table-striped" style="margin-top: 50px">
     <thead>
@@ -67,6 +68,7 @@
             <%= display_directory_tree(participant, files, true).html_safe if files and files.length > 0 %>
           <% end %>
         </td>
+        
         <td width="10%">
 
           <%= link_to "History", submission_records_path(team_id: team.id) %>
