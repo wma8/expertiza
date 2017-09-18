@@ -15,7 +15,7 @@ test:
   password: 
   host: localhost
 
-cucumber:
+cucumber
   adapter: mysql2
   database: expertiza_cucumber
   username: root
