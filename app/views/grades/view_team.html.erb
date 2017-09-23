@@ -228,7 +228,85 @@
         <br/>  
     <% end %>
 <% end %>
-<!-- termination of the main outer loop.-->
+    <!-- Div for all Metrics Display -->
+        <div>
+            <!--
+            <h4 style="font-weight:bold;display:inline-block;" class="metric-test">Metrics</h4>
+            -->
+            <!-- Table for Metric Fetch Tool -->
+            <!--
+            <table class="tbl_heat">
+                <tr>
+                    <td colspan="3" style="padding:5px 10px;font-weight:bold;" align="center">Metric Fetching Tool</td>
+                </tr>
+                <tr>
+                    <td style="padding:5px 10px;">Metric:
+                        <select>
+                            <option>Select metric...</option>
+                            <option>GitHub</option>
+                            <option>Sample Metric 1</option>
+                            <option>Sample Metric 2</option>
+                        </select>
+                    </td>
+                    <td style="padding:5px 10px;">https://github.com/expertiza/expertiza</td>
+                    <td><button type="button">Fetch</button></td>
+                </tr>
+            </table>
+            -->
+
+            <!-- Table for GitHub Metrics -->
+            <h4 style="font-weight:bold;display:inline-block;">GitHub Metrics for: <%= @team.name %></h4>
+            <table class="tbl_heat tablesorter">
+                <!-- Table Headers -->
+                <thead>
+                    <th>Contributer</th>
+                    <th>Member or GitHub User</th>
+                    <th>Commits</th>
+                    <th>Code Delta</th>
+                    <th>Timeline</th>
+                </thead>
+                <!-- member data loop -->
+                <% members = rand(5) + 1 %>
+                <% i = 0 %>
+                <% while i < members do %>
+                    <% i += 1 %>
+                    <% commits = rand(5) + 1 %>
+                    <tr data-toggle="collapse" class="accordion-toggle" data-target="#githubtable<%= table_count %>member<%= i %>">
+                        <td><%= i %></td>
+                        <td>Member <%= i %></td>
+                        <td align="center"><%= commits %></td>
+                        <td><font color="green">20++</font> / <font color="red">21--</font></td>
+                        <td>1/2/2017 - 1/20/2017</td>
+                    </tr>
+                    <tr class="tablesorter-childRow">
+                        <td class="hiddenRow" colspan="5">
+                            <div id="githubtable<%= table_count %>member<%= i %>" class="accordion-body collapse" style="margin-left:10px;">
+                                <table class="tbl_questlist">
+                                    <thead>
+                                        <th>Commit Number</th>
+                                        <th>Date of Commit</th>
+                                        <th>Time of Commit</th>
+                                        <th>Additions</th>
+                                        <th>Deletions</th>
+                                    </thead>
+                                    <% j = 0 %>
+                                    <% while j < commits do %>
+                                        <% j += 1 %>
+                                        <tr>
+                                            <td><%= j %></td>
+                                            <td>1/<%= j * 4 - rand(4) %>/2017</td>
+                                            <td><%= rand(24) %>:00</td>
+                                            <td align="center" class="c5"><%= rand(50) + 1%></td>
+                                            <td align="center" class="c1"><%= rand(50) + 1%></td>
+                                        </tr>
+                                    <% end %>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                <% end %>
+            </table>
+        </div>
 
 <h4 style="font-weight:bold;display:inline-block;">Grade and comment for submission</h4><br/>
 <% if ['Student'].include? current_user.role.name %>
