@@ -100,3 +100,33 @@
 .spn_qsttog {
   padding-left:30px;cursor: pointer;text-decoration:underline;color:blue;font-size:small;
 }
+
+/* Start of Github Metrics Stylesheets */
+
+.metrics_table {
+  background-color: White;
+  border: 1px solid Black;
+}
+
+.metrics_table th {
+  border: 1px solid Black;
+  padding: 5px;
+}
+
+.metrics_table td {
+  border: 1px solid Black;
+  padding: 0px 2px;
+}
+
+.metrics_toggle {
+  color: blue;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.metrics_tooltip {
+  color: grey;
+  padding: 30px;
+}
+
+/* End of Github Metrics Stylesheets */
