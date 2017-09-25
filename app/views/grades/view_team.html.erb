@@ -30,250 +30,242 @@ th.sorter-true.tablesorter-headerUnSorted{
 <!-- For each of the models in the list, generate a heatgrid table. this is the outer most loop -->
 <% table_count = 0 %>
 <% @vmlist.each do |vm| %>
-
-    <% if (vm.questionnaire_display_type == "Metareview" or vm.questionnaire_display_type == "Author Feedback" or vm.questionnaire_display_type == "Teammate Review") and @current_role_name.eql?'Student' %>
-    <% else %>
-        <% if vm.list_of_reviewers.length > 0 %>
-
-          <!-- display the list of questions for this questionnaire -->
-          <div id="hid<%= vm.questionnaire_type + vm.round.to_s %>" class="accordion-body collapse" >
-            <table class="tbl_questlist" >
-              <thead>
-              <th>#</th>
-              <th>Question</th>
-              </thead>
-              <% count = 0 %>
-              <% vm.list_of_rows.each do |row| %>
-                  <% if row.score_row.count > 0  %>
-                      <tr style="background-color: #ffffff;">
-                        <td><%= count += 1 %></td>
-                        <td><%= row.questionText %></td>
+  <% if (vm.questionnaire_display_type == "Metareview" or vm.questionnaire_display_type == "Author Feedback" or vm.questionnaire_display_type == "Teammate Review") and @current_role_name.eql?'Student' %>
+  <% else %>
+    <% if vm.list_of_reviewers.length > 0 %>
+      <!-- display the list of questions for this questionnaire -->
+      <div id="hid<%= vm.questionnaire_type + vm.round.to_s %>" class="accordion-body collapse" >
+        <table class="tbl_questlist" >
+          <thead>
+            <th>#</th>
+            <th>Question</th>
+          </thead>
+          <% count = 0 %>
+          <% vm.list_of_rows.each do |row| %>
+            <% if row.score_row.count > 0  %>
+              <tr style="background-color: #ffffff;">
+                <td><%= count += 1 %></td>
+                <td><%= row.questionText %></td>
+              </tr>
+            <% end %>
+          <% end %>
+        </table>
+      </div>
+      <!-- display the table title and tooltips -->
+      <span style="width:100%;">
+        <h4 style="font-weight:bold;display:inline-block;"><%= vm.questionnaire_display_type %>
+        <% if vm.questionnaire_type == "ReviewQuestionnaire" %>
+          (Round: <%= vm.round.to_s  %> of <%= vm.rounds.to_s  %>)
+        <%end %>
+        </h4>
+        <span class="spn_qsttog" data-toggle="collapse" class="accordion-toggle" data-target="#hid<%= vm.questionnaire_type + vm.round.to_s %>" data-toggle="tooltip" data-placement="right" title="Click to display/hide questions">toggle question list</span>
+        <span class="spn_tooltip" data-toggle="tooltip" data-placement="right" title="Colors are scaled from poor to excellent in the following order: red, orange, yellow, light-green, dark-green">color legend</span>
+        <span class="spn_tooltip" data-toggle="tooltip" data-placement="right" title="Click a row to see the comments for the respective question. Click 'Review Total' row to see Add'l Comments. Useful tip: decreasing your browser's zoom to 75% or 90% many improve your experience.">interaction legend</span>
+      </span>
+      <table id="scoresTable" class="tbl_heat tablesorter">
+        <!-- display the header row of the heatgrid table. this involves iterating through reviewers.-->
+        <thead>
+          <tr>
+            <th class="sorter-true">Criterion<span></span></th>
+            <th class="sorter-false">Max</th>
+            <% i = 1 %>
+            <% vm.list_of_reviews.each do |review| %>
+              <!-- instructors (or higher level users) see reviewer name, students see anonymized string -->
+              <% if (['Student'].include? @current_role_name) && @assignment.is_anonymous%>
+                <th class="sorter-false"> <a target="_blank" href="../response/view?id=<%= review.id.to_s %>"  data-toggle="tooltip" data-placement="right" title="Click to see details"><%= "Review " + i.to_s %></a>  </th>
+              <% else %>
+                <% user_name = User.find(Participant.find(ResponseMap.find(Response.find(review.id).map_id).reviewer_id).user_id).fullname.to_s %>
+                <th class="sorter-false"> <a target="_blank" href="../response/view?id=<%= review.id.to_s %>"  data-toggle="tooltip" data-placement="right" title="Click to see details"><%= user_name.to_s %></a>  </th>
+              <% end %>
+              <% i += 1 %>
+            <% end %>
+            <th class="sorter-true" align="right" >
+              Avg<span></span>
+            </th>
+            <th class="sorter-false">
+              <span  data-toggle="tooltip" data-placement="right" title="A count of comments, for the respective question, which have word count > 10. The purpose of this metric is to represent how many  comments for the question are of a substantial length to provide quality feedback.">metric-1</span>
+            </th>
+          </tr>
+        </thead>
+        <% score_row_count = vm.list_of_rows.first.score_row.count %>
+        <% j = 1 %>
+        <!-- here, starts a series of nested loops. loops for the rows, and for the cells of the rows.-->
+        <!-- additionally, there are hidden rows (expandable) which are also generated via iteration. -->
+        <% vm.list_of_rows.each do |row| %>
+          <!-- notice the data-target. because we're toggling via looped code, we need to dynamically generate the identifier. -->
+          <tr data-toggle="collapse" class="accordion-toggle" data-target="#hid<%= row.question_id.to_s + vm.round.to_s %>">
+            <td class = 'cf' data-toggle="tooltip" title="<%= row.questionText %>"> <%= j.to_s %>   </td>
+            <td class = 'cf' > <%= row.question_max_score %>   </td>
+            <!-- actual cells with scores and colored background. -->
+            <% row.score_row.each do |score| %>
+              <td class="<%= score.color_code %>" align="center" data-toggle="tooltip" title="<%=score.comment%>">
+              <%= score.score_value.to_s %>
+              </td>
+            <% end %>
+            <% if row.score_row.count == 0 %>
+              <% for index in 0 .. score_row_count - 1 %>
+                <td align="center">
+                  <%= "" %>
+                </td>
+              <% end %>
+            <% end %>
+            <td  class = 'cf' align="right">
+              <%= row.average_score_for_row.to_s %>
+            </td>
+            <td  class = 'cf' align="center">
+              <%= row.countofcomments.to_s %>
+            </td>
+          </tr>
+          <!--loop that creates the collapsed-by-default row, which lists all comments. -->
+          <tr class="tablesorter-childRow">
+            <td colspan="<%= (i+1).to_s %>" class="hiddenRow" ><div id="hid<%= row.question_id.to_s + vm.round.to_s %>" class="accordion-body collapse" style="margin-left:10px;">
+              <div style="background-color:lightblue;padding:4px;"><%= row.questionText %></div>
+              <div>
+                <table class="tbl_questlist">
+                  <thead>
+                  <th>Review</th>
+                  <th>Score</th>
+                  <th>Comment</th>
+                  </thead>
+                  <% for index in 0 .. row.score_row.length - 1 %>
+                      <tr>
+                        <td>Review <%=index + 1%></td>
+                        <td class="<%= row.score_row[index].color_code.to_s %>" align="center" ><%= row.score_row[index].score_value.to_s %></td>
+                        <td><%= row.score_row[index].comment %></td>
                       </tr>
                   <% end %>
+                </table>
+              </div>
+            </div>
+            </td>
+          </tr>
+          <% j += 1 %>
+        <% end %>
+        <!--displays the row for the add'l comments, by default: collapsed. -->
+        <tr>
+          <td colspan="<%= (i+1).to_s %>" class="hiddenRow" >
+            <div id="hid<%= vm.questionnaire_type + vm.round.to_s + "comment" %>" class="accordion-body collapse" style="margin-left:10px;">
+              <div style="background-color:#A9A9F5;padding:4px;">
+                <table class="tbl_addlcmt">
+                  <thead>
+                  <th>Review</th>
+                  <th >Additional Comments</th>
+                  </thead>
+                  <tbody>
+                  <%k = 1%>
+                  <% vm.list_of_reviews.each do |review| %>
+                      <tr><td ><%= k %></td>
+                        <td ><%= Response.find(review.id)["additional_comment"] %></td></tr>
+                      <%k += 1%>
+                  <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <!-- Display the list of team members, for Peer Reviews. -->
+      <div style="margin-top:5px"></div>
+      <input class="btn btn-default" type="button" href="#" onclick="col_sort(<%=table_count%>)" data-toggle="tooltip" title="Sort reviews in ascending/descending order of the total score. Consecutive clicks will alternate between ascending and descending sort order" value="Sort by total review score"/>
+      <br>
+      <% table_count += 1%>
+      <span> <%= vm.display_team_members %></span>
+    <!-- this elsif terminates the heatgrid code.  -->
+    <% elsif vm.questionnaire_type != "ReviewQuestionnaire" %>
+      <div class="flash_error">NO REVIEW OF <%= vm.questionnaire_type %> TYPE EXISTS. </div>
+    <% end %>
+    <br/>  
+  <% end %>
+<% end %>
+<!-- Github Metrics -->
+<div>
+  <!-- Title -->
+  <h4 style="font-weight:bold;display:inline-block;">GitHub Metrics for: <%= @team.name %></h4>
+  <table>
+    <!-- Github Metrics Graph (using Zach's methods) -->
+    <tr>
+      <td>
+        <% if !@team.hyperlinks.empty? %>
+          <% @team.hyperlinks.each do |link| %>
+            <% if GithubPullRequestFetcher.supports_url?(link) %>
+              <% @metrics = GithubPullRequestFetcher.new({"url" => link})%>
+              <% @metrics.fetch_content %>
+              <% stats = @metrics.to_bar_graph %>
+              <% if ! stats.nil? && ! stats.empty? %>
+                <div id ="<%= link %>" />
+                <script> 
+                  <%= render partial: "view_team_github_chart", 
+                    :formats => :js, :locals => { stats: stats, id: link, title: "Github Data" }%>
+                </script>
               <% end %>
-            </table>
-          </div>
-
-          <!-- display the table title and tooltips -->
-          <span style="width:100%;">
-              <h4 style="font-weight:bold;display:inline-block;"><%= vm.questionnaire_display_type %>
-                <% if vm.questionnaire_type == "ReviewQuestionnaire" %>
-                    (Round: <%= vm.round.to_s  %> of <%= vm.rounds.to_s  %>)
-                <%end %>
-              </h4>
-              <span class="spn_qsttog" data-toggle="collapse" class="accordion-toggle" data-target="#hid<%= vm.questionnaire_type + vm.round.to_s %>" data-toggle="tooltip" data-placement="right" title="Click to display/hide questions">toggle question list</span>
-            <span class="spn_tooltip" data-toggle="tooltip" data-placement="right" title="Colors are scaled from poor to excellent in the following order: red, orange, yellow, light-green, dark-green">color legend</span>
-            <span class="spn_tooltip" data-toggle="tooltip" data-placement="right" title="Click a row to see the comments for the respective question. Click 'Review Total' row to see Add'l Comments. Useful tip: decreasing your browser's zoom to 75% or 90% many improve your experience.">interaction legend</span>
-
-          </span>
-
-          <table id="scoresTable" class="tbl_heat tablesorter">
-            <!-- display the header row of the heatgrid table. this involves iterating through reviewers.-->
-            <thead>
-            <tr>
-              <th class="sorter-true">Criterion<span></span></th>
-              <th class="sorter-false">Max</th>
-
-              <% i = 1 %>
-              <% vm.list_of_reviews.each do |review| %>
-                  <!-- instructors (or higher level users) see reviewer name, students see anonymized string -->
-                  <% if (['Student'].include? @current_role_name) && @assignment.is_anonymous%>
-                      <th class="sorter-false"> <a target="_blank" href="../response/view?id=<%= review.id.to_s %>"  data-toggle="tooltip" data-placement="right" title="Click to see details"><%= "Review " + i.to_s %></a>  </th>
-                  <% else %>
-                      <% user_name = User.find(Participant.find(ResponseMap.find(Response.find(review.id).map_id).reviewer_id).user_id).fullname.to_s %>
-                      <th class="sorter-false"> <a target="_blank" href="../response/view?id=<%= review.id.to_s %>"  data-toggle="tooltip" data-placement="right" title="Click to see details"><%= user_name.to_s %></a>  </th>
-                  <% end %>
-                  <% i += 1 %>
-              <% end %>
-
-              <th class="sorter-true" align="right" >
-                Avg<span></span>
-              </th>
-              <th class="sorter-false">
-                <span  data-toggle="tooltip" data-placement="right" title="A count of comments, for the respective question, which have word count > 10. The purpose of this metric is to represent how many comments for the question are of a substantial length to provide quality feedback.">metric-1</span>
-              </th>
-
-            </tr>
-            </thead>
-
-
-            <% score_row_count = vm.list_of_rows.first.score_row.count %>
-            <% j = 1 %>
-            <!-- here, starts a series of nested loops. loops for the rows, and for the cells of the rows.-->
-            <!-- additionally, there are hidden rows (expandable) which are also generated via iteration. -->
-            <% vm.list_of_rows.each do |row| %>
-
-                <!-- notice the data-target. because we're toggling via looped code, we need to dynamically generate the identifier. -->
-                <tr data-toggle="collapse" class="accordion-toggle" data-target="#hid<%= row.question_id.to_s + vm.round.to_s %>">
-                  <td class = 'cf' data-toggle="tooltip" title="<%= row.questionText %>"> <%= j.to_s %>   </td>
-                  <td class = 'cf' > <%= row.question_max_score %>   </td>
-
-                  <!-- actual cells with scores and colored background. -->
-                  <% row.score_row.each do |score| %>
-                      <td class="<%= score.color_code %>" align="center" data-toggle="tooltip" title="<%=score.comment%>">
-                        <%= score.score_value.to_s %>
-                      </td>
-                  <% end %>
-
-
-                  <% if row.score_row.count == 0 %>
-                      <% for index in 0 .. score_row_count - 1 %>
-                          <td align="center">
-                            <%= "" %>
-                          </td>
-                      <% end %>
-                  <% end %>
-
-                  <td  class = 'cf' align="right">
-                    <%= row.average_score_for_row.to_s %>
-                  </td>
-                  <td  class = 'cf' align="center">
-                    <%= row.countofcomments.to_s %>
-                  </td>
-                </tr>
-                <!--loop that creates the collapsed-by-default row, which lists all comments. -->
-                <tr class="tablesorter-childRow">
-                  <td colspan="<%= (i+1).to_s %>" class="hiddenRow" ><div id="hid<%= row.question_id.to_s + vm.round.to_s %>" class="accordion-body collapse" style="margin-left:10px;">
-                    <div style="background-color:lightblue;padding:4px;"><%= row.questionText %></div>
-                    <div>
-                      <table class="tbl_questlist">
-                        <thead>
-                        <th>Review </th>
-                        <th>Score</th>
-                        <th>Comment</th>
-                        </thead>
-                        <% for index in 0 .. row.score_row.length - 1 %>
-                            <tr>
-                              <td>Review <%=index + 1%></td>
-                              <td class="<%= row.score_row[index].color_code.to_s %>" align="center" ><%= row.score_row[index].score_value.to_s %></td>
-                              <td><%= row.score_row[index].comment %></td>
-                            </tr>
-                        <% end %>
-                      </table>
-                    </div>
-                  </div>
-                  </td>
-                </tr>
-                <% j += 1 %>
             <% end %>
-
-            <!--displays the row for the add'l comments, by default: collapsed. -->
-            <tr>
-              <td colspan="<%= (i+1).to_s %>" class="hiddenRow" >
-                <div id="hid<%= vm.questionnaire_type + vm.round.to_s + "comment" %>" class="accordion-body collapse" style="margin-left:10px;">
-                  <div style="background-color:#A9A9F5;padding:4px;">
-                    <table class="tbl_addlcmt">
-                      <thead>
-                      <th>Review</th>
-                      <th >Additional Comments</th>
-                      </thead>
-                      <tbody>
-                      <%k = 1%>
-                      <% vm.list_of_reviews.each do |review| %>
-                          <tr><td ><%= k %></td>
-                            <td ><%= Response.find(review.id)["additional_comment"] %></td></tr>
-                          <%k += 1%>
-                      <% end %>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+          <% end %>
+        <% end %>
+      </td>
+    </tr>
+    <!-- Toggle for Github Metrics Table -->
+    <tr>
+      <td>
+        <span title="Click this to expand the metrics table." data-toggle="collapse" data-target="#github_metrics_toggle" class="metrics_toggle">Toggle Metrics Table</span>
+        <span title="Click on an individual's row to expand more details." class="metrics_tooltip">interaction legend</span>
+      </td>
+    </tr>
+    <!-- Github Metrics Table -->
+    <tr id="github_metrics_toggle" class="collapse">
+      <td>
+        <table class="metrics_table">
+          <!-- Table Headers -->
+          <thead style="background-color: LightGray;">
+            <th>Contributer</th>
+            <th>Member or GitHub User</th>
+            <th>Commits</th>
+            <th>Code Delta</th>
+            <th>Timeline</th>
+          </thead>
+          <!-- member data loop -->
+          <% members = rand(5) + 1 %>
+          <% i = 0 %>
+          <% while i < members do %>
+            <% i += 1 %>
+            <% commits = rand(5) + 1 %>
+            <tr data-toggle="collapse" data-target="#githubtablemember<%= i %>" style="cursor: pointer;">
+              <td><%= i %></td>
+              <td>Member <%= i %></td>
+              <td align="center"><%= commits %></td>
+              <td><font color="green">20++</font> / <font color="red">21--</font></td>
+              <td>1/2/2017 - 1/20/2017</td>
+            </tr>
+            <tr id="githubtablemember<%= i %>" class="collapse">
+              <td colspan="5">
+                <table style="margin-left: 10px;">
+                  <thead style="background-color: LightGray;">
+                    <th>Commit Number</th>
+                    <th>Date of Commit</th>
+                    <th>Time of Commit</th>
+                    <th>Additions</th>
+                    <th>Deletions</th>
+                  </thead>
+                  <% j = 0 %>
+                  <% while j < commits do %>
+                    <% j += 1 %>
+                    <tr>
+                      <td><%= j %></td>
+                      <td>1/<%= j * 4 - rand(4) %>/2017</td>
+                      <td><%= rand(24) %>:00</td>
+                      <td align="center" style="background-color: #2DE636"><%= rand(50) + 1%></td>
+                      <td align="center" style="background-color: #FF8080"><%= rand(50) + 1%></td>
+                    </tr>
+                  <% end %>
+                </table>
               </td>
             </tr>
-
-          </table>
-          <!-- Display the list of team members, for Peer Reviews. -->
-          <div style="margin-top:5px"></div>
-          <input class="btn btn-default" type="button" href="#" onclick="col_sort(<%=table_count%>)" data-toggle="tooltip" title="Sort reviews in ascending/descending order of the total score. Consecutive clicks will alternate between ascending and descending sort order" value="Sort by total review score"/>
-          <br>
-          <% table_count += 1%>
-          <span> <%= vm.display_team_members %></span>
-          <!-- this elsif terminates the heatgrid code.  -->
-        <% elsif vm.questionnaire_type != "ReviewQuestionnaire" %>
-            <div class="flash_error">NO REVIEW OF <%= vm.questionnaire_type %> TYPE EXISTS. </div>
-        <% end %>
-        <br/>  
-    <% end %>
-<% end %>
-    <!-- Div for all Metrics Display -->
-        <div>
-            <!--
-            <h4 style="font-weight:bold;display:inline-block;" class="metric-test">Metrics</h4>
-            -->
-            <!-- Table for Metric Fetch Tool -->
-            <!--
-            <table class="tbl_heat">
-                <tr>
-                    <td colspan="3" style="padding:5px 10px;font-weight:bold;" align="center">Metric Fetching Tool</td>
-                </tr>
-                <tr>
-                    <td style="padding:5px 10px;">Metric:
-                        <select>
-                            <option>Select metric...</option>
-                            <option>GitHub</option>
-                            <option>Sample Metric 1</option>
-                            <option>Sample Metric 2</option>
-                        </select>
-                    </td>
-                    <td style="padding:5px 10px;">https://github.com/expertiza/expertiza</td>
-                    <td><button type="button">Fetch</button></td>
-                </tr>
-            </table>
-            -->
-
-            <!-- Table for GitHub Metrics -->
-            <h4 style="font-weight:bold;display:inline-block;">GitHub Metrics for: <%= @team.name %></h4>
-            <table class="tbl_heat tablesorter">
-                <!-- Table Headers -->
-                <thead>
-                    <th>Contributer</th>
-                    <th>Member or GitHub User</th>
-                    <th>Commits</th>
-                    <th>Code Delta</th>
-                    <th>Timeline</th>
-                </thead>
-                <!-- member data loop -->
-                <% members = rand(5) + 1 %>
-                <% i = 0 %>
-                <% while i < members do %>
-                    <% i += 1 %>
-                    <% commits = rand(5) + 1 %>
-                    <tr data-toggle="collapse" class="accordion-toggle" data-target="#githubtable<%= table_count %>member<%= i %>">
-                        <td><%= i %></td>
-                        <td>Member <%= i %></td>
-                        <td align="center"><%= commits %></td>
-                        <td><font color="green">20++</font> / <font color="red">21--</font></td>
-                        <td>1/2/2017 - 1/20/2017</td>
-                    </tr>
-                    <tr class="tablesorter-childRow">
-                        <td class="hiddenRow" colspan="5">
-                            <div id="githubtable<%= table_count %>member<%= i %>" class="accordion-body collapse" style="margin-left:10px;">
-                                <table class="tbl_questlist">
-                                    <thead>
-                                        <th>Commit Number</th>
-                                        <th>Date of Commit</th>
-                                        <th>Time of Commit</th>
-                                        <th>Additions</th>
-                                        <th>Deletions</th>
-                                    </thead>
-                                    <% j = 0 %>
-                                    <% while j < commits do %>
-                                        <% j += 1 %>
-                                        <tr>
-                                            <td><%= j %></td>
-                                            <td>1/<%= j * 4 - rand(4) %>/2017</td>
-                                            <td><%= rand(24) %>:00</td>
-                                            <td align="center" class="c5"><%= rand(50) + 1%></td>
-                                            <td align="center" class="c1"><%= rand(50) + 1%></td>
-                                        </tr>
-                                    <% end %>
-                                </table>
-                            </div>
-                        </td>
-                    </tr>
-                <% end %>
-            </table>
-        </div>
+          <% end %>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
 
 
 <!--<h4 style="font-weight:bold;display:inline-block;">Grade and comment for submission</h4><br/>
