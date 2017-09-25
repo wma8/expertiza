@@ -224,17 +224,15 @@ th.sorter-true.tablesorter-headerUnSorted{
             <th>Timeline</th>
           </thead>
           <!-- member data loop -->
-          <% members = rand(5) + 1 %>
+          <% table_metrics = GithubTableMaker.new({"commits" => @metrics.commits}) %>
           <% i = 0 %>
-          <% while i < members do %>
-            <% i += 1 %>
-            <% commits = rand(5) + 1 %>
+          <% table_metrics.members.each do |member| %>
             <tr data-toggle="collapse" data-target="#githubtablemember<%= i %>" style="cursor: pointer;">
-              <td><%= i %></td>
-              <td>Member <%= i %></td>
-              <td align="center"><%= commits %></td>
-              <td><font color="green">20++</font> / <font color="red">21--</font></td>
-              <td>1/2/2017 - 1/20/2017</td>
+              <td><%= i + 1 %></td>
+              <td><%= member %></td>
+              <td align="center"><%= table_metrics.commits_count[i] %></td>
+              <td><font color="green"><%= table_metrics.delta[i][0] %>++</font> / <font color="red"><%= table_metrics.delta[i][1] %>--</font></td>
+              <td><%= table_metrics.timeline[i][0][0..9] %> - <%= table_metrics.timeline[i][1][0..9] %></td>
             </tr>
             <tr id="githubtablemember<%= i %>" class="collapse">
               <td colspan="5">
@@ -247,19 +245,20 @@ th.sorter-true.tablesorter-headerUnSorted{
                     <th>Deletions</th>
                   </thead>
                   <% j = 0 %>
-                  <% while j < commits do %>
-                    <% j += 1 %>
+                  <% table_metrics.commits[i].each do |commit| %>
                     <tr>
-                      <td><%= j %></td>
-                      <td>1/<%= j * 4 - rand(4) %>/2017</td>
-                      <td><%= rand(24) %>:00</td>
-                      <td align="center" style="background-color: #2DE636"><%= rand(50) + 1%></td>
-                      <td align="center" style="background-color: #FF8080"><%= rand(50) + 1%></td>
+                      <td><%= j + 1 %></td>
+                      <td><%= commit[:date][0..9] %></td>
+                      <td><%= commit[:date][11..15] %></td>
+                      <td align="center" style="background-color: #2DE636"><%= commit[:stats][:additions] %></td>
+                      <td align="center" style="background-color: #FF8080"><%= commit[:stats][:deletions] %></td>
                     </tr>
+                    <% j += 1 %>
                   <% end %>
                 </table>
               </td>
             </tr>
+            <% i += 1 %>
           <% end %>
         </table>
       </td>
