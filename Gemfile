@@ -14,6 +14,8 @@ gem "capistrano-db-tasks", require: false
 # https://www.phusionpassenger.com/library/deploy/apache/automating_app_updates/ruby/
 gem 'capistrano-passenger'
 gem 'capistrano-rails'
+gem 'concurrent-ruby', require: 'concurrent'
+gem 'concurrent-ruby-edge', require: 'concurrent-edge'
 gem 'capistrano-rvm'
 gem 'coveralls', require: false
 gem 'delayed_job_active_record'
