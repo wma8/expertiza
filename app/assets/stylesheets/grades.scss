@@ -112,28 +112,34 @@ background-color: #d3d3d3;
 
 .metrics_table {
   background-color: White;
-  border: 1px solid Black;
 }
 
 .metrics_table th {
-  border: 1px solid Black;
-  padding: 5px;
+  padding: 7px;
+  text-align: center;
+  background-color: #F0F0F0;
+  border: 2px solid Black;
 }
 
 .metrics_table td {
-  border: 1px solid Black;
-  padding: 0px 2px;
+  padding: 7px;
 }
 
 .metrics_toggle {
+  font-size: small;
   color: blue;
   cursor: pointer;
   text-decoration: underline;
 }
 
 .metrics_tooltip {
+  font-size: small;
   color: grey;
   padding: 30px;
+}
+
+.metrics_hover:hover {
+  filter: brightness(85%);
 }
 
 /* End of Github Metrics Stylesheets */

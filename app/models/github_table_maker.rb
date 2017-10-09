@@ -19,14 +19,14 @@ class GithubTableMaker
 
   def fill_data(commits)
     commits.each do |commit|
-      if ! @members.include?(commit[:username])
-        @members.push(commit[:username])
+      if ! @members.include?(commit[:name])
+        @members.push(commit[:name])
         @commits_count.push(1)
         @delta.push([commit[:stats][:additions], commit[:stats][:deletions]])
         @timeline.push([commit[:date], commit[:date]])
         @commits.push([commit])
       else
-        i = @members.index(commit[:username])
+        i = @members.index(commit[:name])
         @commits_count[i] += 1
         @delta[i][0] += commit[:stats][:additions]
         @delta[i][1] += commit[:stats][:deletions]
