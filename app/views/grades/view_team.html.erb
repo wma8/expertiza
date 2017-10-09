@@ -1,3 +1,4 @@
+<div style="background-color: White;">
 <style>
 th.tablesorter-headerAsc{
   background-image: url(<%= asset_path("up-arrow.png") %>);
@@ -24,6 +25,8 @@ th.sorter-true.tablesorter-headerUnSorted{
 }
 </style>
 <script type="text/javascript" src="/assets/view_team_in_grades.js"></script>
+
+
 <h1>Summary Report for assignment: <%= @assignment.name %></h1>
 <h4>Team: <%= @team.name %></h4>
 
@@ -188,7 +191,7 @@ th.sorter-true.tablesorter-headerUnSorted{
       <td>
         <% if !@team.hyperlinks.empty? %>
           <% @team.hyperlinks.each do |link| %>
-            <% if GithubMetricsFetcher.supports_url?(link) %>
+            <% if GithubMetricsFetcher.supports_url?(link) and ! @metrics %>
               <% @metrics = GithubMetricsFetcher.new({"url" => link})%>
               <% @metrics.fetch_content %>
               <% stats = @metrics.to_bar_graph %>
@@ -208,16 +211,16 @@ th.sorter-true.tablesorter-headerUnSorted{
       <!-- Toggle for Github Metrics Table -->
       <tr>
         <td>
-          <span title="Click this to expand the metrics table." data-toggle="collapse" data-target="#github_metrics_toggle" class="metrics_toggle">Toggle Metrics Table</span>
+          <span title="Click this to hide the metrics table." data-toggle="collapse" data-target="#github_metrics_toggle" class="metrics_toggle">hide table</span>
           <span title="Click on an individual's row to expand more details." class="metrics_tooltip">interaction legend</span>
         </td>
       </tr>
       <!-- Github Metrics Table -->
-      <tr id="github_metrics_toggle" class="collapse">
+      <tr id="github_metrics_toggle" class="collapse in">
         <td>
-          <table class="metrics_table">
+          <table class="table-bordered table-striped metrics_table" style="background-color: White;" id="accordion">
             <!-- Table Headers -->
-            <thead style="background-color: LightGray;">
+            <thead>
               <th>Contributer</th>
               <th>Member or GitHub User</th>
               <th>Commits</th>
@@ -225,20 +228,20 @@ th.sorter-true.tablesorter-headerUnSorted{
               <th>Timeline</th>
             </thead>
             <!-- member data loop -->
-            <% table_metrics = GithubTableMaker.new({"commits" => @metrics.commits}) %>
+            <% table_metrics = GithubTableMaker.new({"commits" => @metrics.commits[:data]}) %>
             <% i = 0 %>
             <% table_metrics.members.each do |member| %>
-              <tr data-toggle="collapse" data-target="#githubtablemember<%= i %>" style="cursor: pointer;">
+              <tr data-toggle="collapse" href="#githubtablemember<%= i %>" style="cursor: pointer;" data-parent="#accordion">
                 <td><%= i + 1 %></td>
                 <td><%= member %></td>
                 <td align="center"><%= table_metrics.commits_count[i] %></td>
-                <td><font color="green"><%= table_metrics.delta[i][0] %>++</font> / <font color="red"><%= table_metrics.delta[i][1] %>--</font></td>
+                <td align="center"><font color="green"><%= table_metrics.delta[i][0] %>++</font> / <font color="red"><%= table_metrics.delta[i][1] %>--</font></td>
                 <td><%= table_metrics.timeline[i][0][0..9] %> - <%= table_metrics.timeline[i][1][0..9] %></td>
               </tr>
               <tr id="githubtablemember<%= i %>" class="collapse">
                 <td colspan="5">
-                  <table style="margin-left: 10px;">
-                    <thead style="background-color: LightGray;">
+                  <table class="table-striped table-bordered" style="margin-left: 10px;">
+                    <thead>
                       <th>Commit Number</th>
                       <th>Date of Commit</th>
                       <th>Time of Commit</th>
@@ -259,6 +262,8 @@ th.sorter-true.tablesorter-headerUnSorted{
                   </table>
                 </td>
               </tr>
+              <tr class="collapse">
+              </tr>
               <% i += 1 %>
             <% end %>
           </table>
@@ -277,3 +282,4 @@ th.sorter-true.tablesorter-headerUnSorted{
 Grade: <%= label_tag 'grade_for_submission', @team.try(:grade_for_submission) %><br/>
 Comment: <%= label_tag 'comment_for_submission', @team.try(:comment_for_submission) %>-->
 <!-- termination of the main outer loop. -->
+</div>
