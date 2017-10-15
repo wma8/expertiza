@@ -213,3 +213,5 @@ mysql2psql.yml
 *.pem
 t.csv
 mariadb
+docker-compose.yaml
+env_vars.sh

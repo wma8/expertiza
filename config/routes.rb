@@ -207,7 +207,16 @@ resources :institution, except: [:destroy] do
 
   resources :profile, only: %i[edit update]
 
-  resources :publishing, only: [] do
+  post '/plagiarism_checker_results/:id' => 'plagiarism_checker_comparison#save_results'
+
+  resources :profile do
+    collection do
+      get :edit
+      get :github_callback
+    end
+  end
+
+  resources :publishing do
     collection do
       get :view
       post :update_publish_permissions
