@@ -98,6 +98,7 @@ FactoryBot.define do
     timezonepref 'Eastern Time (US & Canada)'
     public_key nil
     copy_of_emails  false
+    github_id nil
   end
 
   factory :instructor, class: Instructor do
