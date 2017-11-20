@@ -191,11 +191,15 @@ th.sorter-true.tablesorter-headerUnSorted{
       <td>
         <% if !@team.hyperlinks.empty? %>
           <% @team.hyperlinks.each do |link| %>
-            <% if GithubMetricsFetcher.supports_url?(link) and ! @metrics %>
-              <% @metrics = GithubMetricsFetcher.new({"url" => link})%>
-              <% @metrics.fetch_content %>
-              <% stats = @metrics.to_bar_graph %>
-              <% if ! stats.nil? && ! stats.empty? %>
+            <% if GithubLoaderAdaptee.can_load?({:team => @team, 
+                                                 :assignment => @assignment,
+                                                 :url => link}) and ! @metrics %>
+              <%= link %>
+              <% @metrics = GithubLoaderAdaptee.load_metric({:team => @team, 
+                                                 :assignment => @assignment,
+                                                 :url => link})%>
+              <%= GithubLoaderAdaptee.to_map(@metrics) %>
+              <% if false and ! stats.nil? && ! stats.empty? %>
                 <div id ="<%= link %>" />
                 <script>
                   <%= render partial: "view_team_github_chart", 
@@ -228,7 +232,7 @@ th.sorter-true.tablesorter-headerUnSorted{
               <th>Timeline</th>
             </thead>
             <!-- member data loop -->
-            <% table_metrics = GithubTableMaker.new({"commits" => @metrics.commits[:data]}) %>
+            <% table_metrics = GithubTableMaker.new({:commits => @metrics}) %>
             <% i = 0 %>
             <% table_metrics.members.each do |member| %>
               <tr data-toggle="collapse" href="#githubtablemember<%= i %>" style="cursor: pointer;" data-parent="#accordion">
