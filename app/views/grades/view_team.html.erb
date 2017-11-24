@@ -190,7 +190,7 @@ th.sorter-true.tablesorter-headerUnSorted{
       <% @team.hyperlinks.each do |link| %>
         <% if GithubLoaderAdaptee.can_load?({:team => @team, 
                                              :assignment => @assignment,
-                                             :url => link}) and ! @metrics %>
+                                             :url => link}) and (! @metrics or @metrics.empty?) %>
           <% @link = link %>
           <% @metrics = GithubLoaderAdaptee.load_metric({:team => @team, 
                                              :assignment => @assignment,
@@ -199,7 +199,7 @@ th.sorter-true.tablesorter-headerUnSorted{
         <% end %>
       <% end %>
     <% end %>
-    <% if @metrics %>
+    <% if @metrics and ! @metrics.empty? %>
       <% table_metrics = GithubTableMaker.get_table_data({:team => @team,
                                                      :commits => @metrics}) %>
       <!-- Github Metrics Graph -->
