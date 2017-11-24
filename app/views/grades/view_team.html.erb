@@ -186,32 +186,35 @@ th.sorter-true.tablesorter-headerUnSorted{
   <!-- Title -->
   <h4 style="font-weight:bold;display:inline-block;">GitHub Metrics</h4>
   <table>
-    <!-- Github Metrics Graph (using Zach's methods) -->
-    <tr>
-      <td>
-        <% if !@team.hyperlinks.empty? %>
-          <% @team.hyperlinks.each do |link| %>
-            <% if GithubLoaderAdaptee.can_load?({:team => @team, 
-                                                 :assignment => @assignment,
-                                                 :url => link}) and ! @metrics %>
-              <%= link %>
-              <% @metrics = GithubLoaderAdaptee.load_metric({:team => @team, 
-                                                 :assignment => @assignment,
-                                                 :url => link})%>
-              <%= GithubLoaderAdaptee.to_map(@metrics) %>
-              <% if false and ! stats.nil? && ! stats.empty? %>
-                <div id ="<%= link %>" />
-                <script>
-                  <%= render partial: "view_team_github_chart", 
-                    :formats => :js, :locals => { stats: stats, id: link, title: "Github Data" }%>
-                </script>
-              <% end %>
-            <% end %>
-          <% end %>
+    <% if !@team.hyperlinks.empty? %>
+      <% @team.hyperlinks.each do |link| %>
+        <% if GithubLoaderAdaptee.can_load?({:team => @team, 
+                                             :assignment => @assignment,
+                                             :url => link}) and ! @metrics %>
+          <% @link = link %>
+          <% @metrics = GithubLoaderAdaptee.load_metric({:team => @team, 
+                                             :assignment => @assignment,
+                                             :url => link})%>
+          <% @metrics = GithubLoaderAdaptee.to_map(@metrics) %>
         <% end %>
-      </td>
-    </tr>
+      <% end %>
+    <% end %>
     <% if @metrics %>
+      <% table_metrics = GithubTableMaker.get_table_data({:team => @team,
+                                                     :commits => @metrics}) %>
+      <!-- Github Metrics Graph -->
+      <tr>
+        <td>
+          <% stats = GithubTableMaker.to_graph(table_metrics) %>
+          <% if ! stats.nil? && ! stats.empty? %>
+            <div id ="<%= @link %>" />
+            <script>
+              <%= render partial: "view_team_github_chart", 
+                :formats => :js, :locals => { stats: stats, id: @link, title: "Github Data" }%>
+            </script>
+          <% end %>
+        </td>
+      </tr>
       <!-- Toggle for Github Metrics Table -->
       <tr>
         <td>
@@ -232,43 +235,44 @@ th.sorter-true.tablesorter-headerUnSorted{
               <th>Timeline</th>
             </thead>
             <!-- member data loop -->
-            <% table_metrics = GithubTableMaker.new({:commits => @metrics}) %>
             <% i = 0 %>
-            <% table_metrics.members.each do |member| %>
-              <tr data-toggle="collapse" href="#githubtablemember<%= i %>" style="cursor: pointer;" data-parent="#accordion">
-                <td><%= i + 1 %></td>
-                <td><%= member %></td>
-                <td align="center"><%= table_metrics.commits_count[i] %></td>
-                <td align="center"><font color="green"><%= table_metrics.delta[i][0] %>++</font> / <font color="red"><%= table_metrics.delta[i][1] %>--</font></td>
-                <td><%= table_metrics.timeline[i][0][0..9] %> - <%= table_metrics.timeline[i][1][0..9] %></td>
-              </tr>
-              <tr id="githubtablemember<%= i %>" class="collapse">
-                <td colspan="5">
-                  <table class="table-striped table-bordered" style="margin-left: 10px;">
-                    <thead>
-                      <th>Commit Number</th>
-                      <th>Date of Commit</th>
-                      <th>Time of Commit</th>
-                      <th>Additions</th>
-                      <th>Deletions</th>
-                    </thead>
-                    <% j = 0 %>
-                    <% table_metrics.commits[i].each do |commit| %>
-                      <tr>
-                        <td><%= j + 1 %></td>
-                        <td><%= commit[:date][0..9] %></td>
-                        <td><%= commit[:date][11..15] %></td>
-                        <td align="center" style="background-color: #2DE636"><%= commit[:stats][:additions] %></td>
-                        <td align="center" style="background-color: #FF8080"><%= commit[:stats][:deletions] %></td>
-                      </tr>
-                      <% j += 1 %>
-                    <% end %>
-                  </table>
-                </td>
-              </tr>
-              <tr class="collapse">
-              </tr>
-              <% i += 1 %>
+            <% table_metrics.each do |member| %>
+              <% if !member[:github_id].nil? %>
+                <tr data-toggle="collapse" href="#githubtablemember<%= i %>" style="cursor: pointer;" data-parent="#accordion">
+                  <td><%= i + 1 %></td>
+                  <td><%= member[:name] %></td>
+                  <td align="center"><%= member[:commits_count] %></td>
+                  <td align="center"><font color="green"><%= member[:additions] %>++</font> / <font color="red"><%= member[:deletions] %>--</font></td>
+                  <td><%= member[:timeline][0][0..9] %> - <%= member[:timeline][1][0..9] %></td>
+                </tr>
+                <tr id="githubtablemember<%= i %>" class="collapse">
+                  <td colspan="5">
+                    <table class="table-striped table-bordered" style="margin-left: 10px;">
+                      <thead>
+                        <th>Commit Number</th>
+                        <th>Date of Commit</th>
+                        <th>Time of Commit</th>
+                        <th>Additions</th>
+                        <th>Deletions</th>
+                      </thead>
+                      <% j = 0 %>
+                      <% member[:commits].each do |commit| %>
+                        <tr>
+                          <td><%= j + 1 %></td>
+                          <td><%= commit[:commit_date][0..9] %></td>
+                          <td><%= commit[:commit_date][11..15] %></td>
+                          <td align="center" style="background-color: #2DE636"><%= commit[:lines_added] %></td>
+                          <td align="center" style="background-color: #FF8080"><%= commit[:lines_deleted] %></td>
+                        </tr>
+                        <% j += 1 %>
+                      <% end %>
+                    </table>
+                  </td>
+                </tr>
+                <tr class="collapse">
+                </tr>
+                <% i += 1 %>
+              <% end %>
             <% end %>
           </table>
         </td>

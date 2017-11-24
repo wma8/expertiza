@@ -6,8 +6,7 @@
   <% headers["Team member(s)"] = "18%" %>
 <% else %>
   <% headers["Participant name"] = "18%" %>
-<% end %>                              
-<% headers["Github metrics"] = "30%" %>
+<% end %>
 <% headers["Submitted item(s)"] = nil %>
 <table class="table table-striped" style="margin-top: 50px">
     <thead>
@@ -55,8 +54,8 @@
         <td bgcolor= <%= bgcolor%>>
           <% if !team.hyperlinks.empty? %>
             <% team.hyperlinks.each do |link| %>
-              <% if GithubPullRequestFetcher.supports_url?(link) %>
-                <% metrics = GithubPullRequestFetcher.new({"url" => link})%>
+              <% if GithubMetricsFetcher.supports_url?(link) %>
+                <% metrics = GithubMetricsFetcher.new({"url" => link})%>
                 <% metrics.fetch_content %>
                 <% stats = metrics.to_bar_graph %>
                 <% if ! stats.nil? && ! stats.empty? %>
@@ -67,7 +66,9 @@
                   </script>
                 <% end %>
               <% end %>
-          </td>
+            <% end %>
+          <% end %>
+        </td>
 
         <!--Submitted item(s)-->
         <td>
