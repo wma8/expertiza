@@ -9,23 +9,24 @@ class GithubLoaderAdaptee < MetricLoaderAdapter
   end
 
   def self.load_metric(params)
-    team, assignment, url = params.values_at(:team, :assignment, :url)
+    team, assignment, @url = params.values_at(:team, :assignment, :url)
     team_filter_lam = make_team_filter(team) 
     
     metric_db_data = Metric.includes(:metric_data_points).where(team_id: team.id, 
       assignment_id: assignment.id, 
       source: MetricDataPointType.sources[:github],
-      remote_id: url )
+      remote_id: @url)
     
     if metric_db_data.nil?
       metric_db_data = []
-      metrics = GithubMetricsFetcher.new({:url => url,
+      metrics = GithubMetricsFetcher.new({:url => @url,
         :team_filter => team_filter_lam})
     else 
       flattened_data = to_map(metric_db_data)
       commit_list = flattened_data.map { |t| t[:commit_id] }
+      print commit_list
       commit_filter = lambda { |commit_id| !commit_list.include?(commit_id) }
-      metrics = GithubMetricsFetcher.new({:url => url, :commit_filter => commit_filter, 
+      metrics = GithubMetricsFetcher.new({:url => @url, :commit_filter => commit_filter, 
         :team_filter => team_filter_lam})
     end
 
@@ -63,7 +64,7 @@ class GithubLoaderAdaptee < MetricLoaderAdapter
       team_id: team.id,
       assignment_id: assignment.id,
       source: :github,
-      remote_id: :url,
+      remote_id: @url,
       uri: "#{project}:commit:#{commit[:commit_id]}"
     )
     

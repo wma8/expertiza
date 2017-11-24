@@ -1,38 +1,42 @@
 class GithubTableMaker
-  
-  attr_accessor :members
-  attr_accessor :commits_count
-  attr_accessor :delta
-  attr_accessor :timeline
-  attr_accessor :commits
 
-  def initialize(params)
-    @members = Array.new
-    @commits_count = Array.new
-    @delta = Array.new
-    @timeline = Array.new
-    @commits = Array.new
-    fill_data(params["commits"])
+  def self.get_table_data(params)
+    members = params[:team].users.map{ |u| {:name => u.name, :github_id => u.github_id} }
+    members.each do |member|
+      member[:commits_count] = 0
+      member[:additions] = 0
+      member[:deletions] = 0
+      member[:timeline] = nil
+      member[:commits] = []
+      if !member[:github_id].nil?
+        params[:commits].each do |commit|
+          if member[:github_id] == commit[:user_id]
+            member[:commits_count] += 1
+            member[:additions] += commit[:lines_added].to_i
+            member[:deletions] += commit[:lines_deleted].to_i
+            if member[:timeline].nil?
+              member[:timeline] = [commit[:commit_date], commit[:commit_date]]
+            else
+              member[:timeline][1] = commit[:commit_date]
+            end
+            member[:commits].push(commit)
+          end
+        end
+      end
+    end
   end
 
-  private
-
-  def fill_data(commits)
-    commits.each do |commit|
-      if ! @members.include?(commit[:name])
-        @members.push(commit[:name])
-        @commits_count.push(1)
-        @delta.push([commit[:stats][:additions], commit[:stats][:deletions]])
-        @timeline.push([commit[:date], commit[:date]])
-        @commits.push([commit])
-      else
-        i = @members.index(commit[:name])
-        @commits_count[i] += 1
-        @delta[i][0] += commit[:stats][:additions]
-        @delta[i][1] += commit[:stats][:deletions]
-        @timeline[i][1] = commit[:date]
-        @commits[i].push(commit)
+  def self.to_graph(table_metrics)
+    if ! table_metrics.nil? && ! table_metrics.empty?
+      result = []
+      table_metrics.each do |member|
+        if ! member[:github_id].nil?
+          result.push([member[:name], member[:additions].to_i + member[:deletions].to_i])
+        end
       end
+      result.unshift(["Name", "Total Changes"])
+    else 
+      ["Name", "Total Changes"]
     end
   end
 
