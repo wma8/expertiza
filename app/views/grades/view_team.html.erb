@@ -210,7 +210,7 @@ th.sorter-true.tablesorter-headerUnSorted{
             <div id ="<%= @link %>" />
             <script>
               <%= render partial: "view_team_github_chart", 
-                :formats => :js, :locals => { stats: stats, id: @link, title: "Github Data" }%>
+                :formats => :js, :locals => { stats: stats, id: @link, title: "Total Changes" }%>
             </script>
           <% end %>
         </td>
@@ -219,7 +219,7 @@ th.sorter-true.tablesorter-headerUnSorted{
       <tr>
         <td>
           <span title="Click this to hide the metrics table." data-toggle="collapse" data-target="#github_metrics_toggle" class="metrics_toggle">hide table</span>
-          <span title="Click on an individual's row to expand more details." class="metrics_tooltip">interaction legend</span>
+          <span title="Click on an individual's row to expand for more details." class="metrics_tooltip">interaction legend</span>
         </td>
       </tr>
       <!-- Github Metrics Table -->
@@ -228,8 +228,8 @@ th.sorter-true.tablesorter-headerUnSorted{
           <table class="table-bordered table-striped metrics_table" style="background-color: White;" id="accordion">
             <!-- Table Headers -->
             <thead>
-              <th>Contributer</th>
-              <th>Member or GitHub User</th>
+              <th>#</th>
+              <th>Member</th>
               <th>Commits</th>
               <th>Code Delta</th>
               <th>Timeline</th>
