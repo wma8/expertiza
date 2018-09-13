@@ -1,0 +1,46 @@
+{
+  "maxReviewers": 5,
+  "numFilesToCheck": 20,
+  "message": "Hi @pullRequester, thank you for your contributions! @reviewers, please review this pull request.",
+  "alwaysNotifyForPaths": [
+    {
+      "name": "Winbobob",
+      "files": ["spec", "*.yml"],
+      "skipTeamPrs": false
+    }
+  ],
+  "fallbackNotifyForPaths": [
+    {
+      "name": "efg",
+      "files": ["app", "config", "db"],
+      "skipTeamPrs": false
+    },
+    {
+      "name": "Winbobob",
+      "files": ["app", "config", "db"],
+      "skipTeamPrs": false
+    },
+    {
+      "name": "ferryxo",
+      "files": ["app", "config", "db"],
+      "skipTeamPrs": false
+    }
+  ],
+  "findPotentialReviewers": true,
+  "fileBlacklist": ["*.md"],
+  "userBlacklist": [],
+  "userBlacklistForPR": [],
+  "requiredOrgs": ["expertiza"],
+  "actions": ["opened"],
+  "branches": [],
+  "skipAlreadyAssignedPR": true,
+  "skipAlreadyMentionedPR": true,
+  "assignToReviewer": false,
+  "createReviewRequest": true,
+  "createComment": true,
+  "skipTitle": "wip",
+  "withLabel": "",
+  "delayed": false,
+  "delayedUntil": "10d",
+  "skipCollaboratorPR": false
+}
